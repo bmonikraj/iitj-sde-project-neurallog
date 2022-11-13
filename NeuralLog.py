@@ -1,7 +1,7 @@
 import os
 import sys
 
-sys.path.append("../")
+sys.path.append(".")
 
 import pickle
 import numpy as np
@@ -15,7 +15,7 @@ from neurallog.models import NeuralLog
 from neurallog import data_loader
 from neurallog.utils import classification_report
 
-log_file = "../logs/BGL.log"
+log_file = "data/raw/BGL.log"
 embed_dim = 768  # Embedding size for each token
 max_len = 75
 
@@ -135,5 +135,5 @@ if __name__ == '__main__':
         log_file, train_ratio=0.8, windows_size=20,
         step_size=20, e_type='bert', mode='balance')
 
-    model = train(x_tr, y_tr, 10, 256, "bgl_transformer.hdf5")
+    model = train(x_tr, y_tr, 10, 256, "saved_models/bgl_transformer.hdf5")
     test_model(model, x_te, y_te, batch_size=1024)
