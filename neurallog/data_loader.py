@@ -6,25 +6,25 @@ import re
 from sklearn.utils import shuffle
 import pickle
 import string
-from transformers import GPT2Tokenizer, TFGPT2Model
+# from transformers import GPT2Tokenizer, TFGPT2Model
 from transformers import BertTokenizer, TFBertModel
-from transformers import RobertaTokenizer, TFRobertaModel
+# from transformers import RobertaTokenizer, TFRobertaModel
 import tensorflow as tf
 import time
 
 # Pre-trained GPT2 model
-gpt2_tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
-gpt2_model = TFGPT2Model.from_pretrained('gpt2')
+# gpt2_tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
+# gpt2_model = TFGPT2Model.from_pretrained('gpt2')
 
 # Pre-trained BERT model
 bert_tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 bert_model = TFBertModel.from_pretrained('bert-base-uncased')
 
 # Pre-trained XLM model
-xlm_tokenizer = RobertaTokenizer.from_pretrained('roberta-base')
-xlm_model = TFRobertaModel.from_pretrained('roberta-base')
+# xlm_tokenizer = RobertaTokenizer.from_pretrained('roberta-base')
+# xlm_model = TFRobertaModel.from_pretrained('roberta-base')
 
-
+'''
 def gpt2_encoder(s, no_wordpiece=0):
     """ Compute semantic vectors with GPT2
     Parameters
@@ -47,7 +47,7 @@ def gpt2_encoder(s, no_wordpiece=0):
         return v[0]
     except Exception as _:
         return np.zeros((768,))
-
+'''
 
 def bert_encoder(s, no_wordpiece=0):
     """ Compute semantic vector with BERT
@@ -69,7 +69,7 @@ def bert_encoder(s, no_wordpiece=0):
     v = tf.reduce_mean(outputs.last_hidden_state, 1)
     return v[0]
 
-
+'''
 def xlm_encoder(s, no_wordpiece=0):
     """ Compute semantic vector with XLM
     Parameters
@@ -89,7 +89,7 @@ def xlm_encoder(s, no_wordpiece=0):
     outputs = xlm_model(**inputs)
     v = tf.reduce_mean(outputs.last_hidden_state, 1)
     return v[0]
-
+'''
 
 def _split_data(x_data, y_data=None, train_ratio=0, split_type='uniform'):
     """ Split train/test data
@@ -185,14 +185,15 @@ def load_HDFS(log_file, label_file=None, train_ratio=0.5, window='session',
     e_type = e_type.lower()
     if e_type == "bert":
         encoder = bert_encoder
-    elif e_type == "xlm":
-        encoder = xlm_encoder
+    # elif e_type == "xlm":
+    #     encoder = xlm_encoder
+    # else:
+    #     if e_type == "gpt2":
+    #         encoder = gpt2_encoder
+    #     else:
+    #         raise ValueError('Embedding type {0} is not in BERT, XLM, and GPT2'.format(e_type.upper()))
     else:
-        if e_type == "gpt2":
-            encoder = gpt2_encoder
-        else:
-            raise ValueError('Embedding type {0} is not in BERT, XLM, and GPT2'.format(e_type.upper()))
-
+        raise ValueError('Embedding type {0} is not in BERT'.format(e_type.upper()))
     E = {}
     t0 = time.time()
     assert log_file.endswith('.log'), "Missing .log file"
@@ -332,17 +333,18 @@ def load_supercomputers(log_file, train_ratio=0.5, windows_size=20, step_size=0,
     with open(log_file, mode="r", encoding='utf8') as f:
         logs = f.readlines()
         logs = [x.strip() for x in logs]
+        logs = logs[:int(len(logs)/64)]
     E = {}
     e_type = e_type.lower()
     if e_type == "bert":
         encoder = bert_encoder
-    elif e_type == "xlm":
-        encoder = xlm_encoder
+    # elif e_type == "xlm":
+    #     encoder = xlm_encoder
+    # else:
+    #     if e_type == "gpt2":
+    #         encoder = gpt2_encoder
     else:
-        if e_type == "gpt2":
-            encoder = gpt2_encoder
-        else:
-            raise ValueError('Embedding type {0} is not in BERT, XLM, and GPT2'.format(e_type.upper()))
+        raise ValueError('Embedding type {0} is not in BERT'.format(e_type.upper()))
 
     print("Loaded", len(logs), "lines!")
     x_tr, y_tr = [], []

@@ -68,7 +68,7 @@ def train_generator(training_generator, validate_generator, num_train_samples, n
     # model.load_weights("hdfs_transformer.hdf5")
 
     model.compile(loss=loss_object, metrics=['accuracy'],
-                  optimizer=optimizer)
+                  optimizer=optimizer, run_eagerly=True)
 
     print(model.summary())
 
@@ -92,11 +92,15 @@ def train_generator(training_generator, validate_generator, num_train_samples, n
                         verbose=1,
                         validation_data=validate_generator,
                         validation_steps=int(num_val_samples / batch_size),
-                        workers=16,
+                        workers=8,
                         max_queue_size=32,
                         callbacks=callbacks_list,
-                        shuffle=True
+                        shuffle=True,
+                        use_multiprocessing=True
                         )
+
+    # model.load_weights(filepath)
+
     return model
 
 
@@ -122,7 +126,7 @@ def test_model(model, x, y, batch_size):
     x, y = shuffle(x, y)
     x, y = x[: len(x) // batch_size * batch_size], y[: len(y) // batch_size * batch_size]
     test_loader = BatchGenerator(x, y, batch_size)
-    prediction = model.predict_generator(test_loader, steps=(len(x) // batch_size), workers=16, max_queue_size=32,
+    prediction = model.predict_generator(test_loader, steps=(len(x) // batch_size), workers=8, max_queue_size=32,
                                          verbose=1)
     prediction = np.argmax(prediction, axis=1)
     y = y[:len(prediction)]
@@ -134,6 +138,5 @@ if __name__ == '__main__':
     (x_tr, y_tr), (x_te, y_te) = data_loader.load_supercomputers(
         log_file, train_ratio=0.8, windows_size=20,
         step_size=20, e_type='bert', mode='balance')
-
-    model = train(x_tr, y_tr, 10, 256, "saved_models/bgl_transformer.hdf5")
+    model = train(x_tr, y_tr, 0, 32, "saved_models/bgl_transformer.hdf5")
     test_model(model, x_te, y_te, batch_size=1024)
